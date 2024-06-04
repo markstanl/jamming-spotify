@@ -16,10 +16,18 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noUnusedLocals": false, //switch to true when ready
+    "noUnusedParameters": false, //switch to true when ready
+    "noFallthroughCasesInSwitch": true,
+
+    /* baseURL */
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "./src"
+  ],
+  "references": [{ "path": "./tsconfig.node.json"}]
 }
