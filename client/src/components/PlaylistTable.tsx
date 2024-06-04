@@ -1,20 +1,24 @@
 import React, {useState} from 'react'
 import SongResult from "@/components/SongResult.tsx";
 import useDarkModeStyles from '@/utils/darkModeStyles';
+import {handleSavePlaylist} from "@/utils/methods.ts";
+
 
 type PlaylistTableProps = {
-    playlistSongs: ({
-        title: string;
-        artist: string;
-        album: string;
-    } | null)[]
-
+    playlistSongs: (Song)[],
+    setPlaylistSongs: React.Dispatch<React.SetStateAction<(Song)[]>>
 }
 
-const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs}) => {
+const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs, setPlaylistSongs}) => {
 
     const styles = useDarkModeStyles();
     const [playlistName, setPlaylistName] = useState('')
+
+    playlistSongs && playlistSongs.forEach((song) => {
+        if(song) {
+            song['inPlaylistTable'] = true;
+        }
+    })
 
     return (
         <div className={`w-5/12 min-h-screen flex flex-col ${styles.bgPrimary} items-center`}>
@@ -26,16 +30,17 @@ const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs}) => {
                    onChange={(e) => setPlaylistName(e.target.value)}
             />
 
-            {playlistSongs.map((song, index) => {
+            {playlistSongs.length > 0 ? playlistSongs.map((song, index) => {
                 return (
-                    <SongResult key={index} songObject={song}/>
+                    <SongResult key={index} songObject={song} setPlaylistSongs={setPlaylistSongs}
+                                playlistSongs={playlistSongs}/>
                 )
-            })}
+            }) : <p>Add some songs!</p>}
 
             <button className={`rounded-full w-36 mt-2 ${styles.bgAccent} ${styles.bgAccentHover}
                     ${styles.borderText} border-2`}
                     onClick={() => {
-                        console.log(playlistName)
+                        handleSavePlaylist(playlistName, playlistSongs)
                     }}
             > Save Playlist
             </button>
