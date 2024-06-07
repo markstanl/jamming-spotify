@@ -54,7 +54,8 @@ const SongResult: React.FC<SongResultProps> = ({songObject, setPlaylistSongs, pl
 
 
     return (
-        <div className={`h-16 w-full ${styles.bgPrimary} ${styles.textBg} flex flex-row justify-between p-2`}>
+        <div className={`h-16 w-full ${styles.bgPrimary} ${styles.textBg} flex flex-row justify-between p-2
+            border-b-2 ${styles.borderText}`}>
             <div className={'flex flex-col'}>
                 <h1>{title}</h1>
                 <h2>{artist}</h2>

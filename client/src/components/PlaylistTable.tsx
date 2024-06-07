@@ -7,15 +7,17 @@ import {handleSavePlaylist} from "@/utils/methods.ts";
 type PlaylistTableProps = {
     playlistSongs: (Song)[],
     setPlaylistSongs: React.Dispatch<React.SetStateAction<(Song)[]>>
+    setResultPlaylist: React.Dispatch<React.SetStateAction<Playlist>>
 }
 
-const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs, setPlaylistSongs}) => {
+const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs, setPlaylistSongs
+                                                         , setResultPlaylist}) => {
 
     const styles = useDarkModeStyles();
     const [playlistName, setPlaylistName] = useState('')
 
     playlistSongs && playlistSongs.forEach((song) => {
-        if(song) {
+        if (song) {
             song['inPlaylistTable'] = true;
         }
     })
@@ -40,7 +42,7 @@ const PlaylistTable: React.FC<PlaylistTableProps> = ({playlistSongs, setPlaylist
             <button className={`rounded-full w-36 mt-2 ${styles.bgAccent} ${styles.bgAccentHover}
                     ${styles.borderText} border-2`}
                     onClick={() => {
-                        handleSavePlaylist(playlistName, playlistSongs)
+                        handleSavePlaylist(playlistName, playlistSongs, setResultPlaylist)
                     }}
             > Save Playlist
             </button>

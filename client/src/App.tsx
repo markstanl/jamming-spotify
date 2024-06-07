@@ -10,6 +10,7 @@ import {applyPlaylistAttribute} from "@/utils/methods.ts";
 //Components
 import ResultTable from "@/components/ResultTable.tsx";
 import PlaylistTable from "@/components/PlaylistTable.tsx";
+import GenerateImage from "@/components/GenerateImage.tsx";
 
 function App() {
     const [isDarkMode, setIsDarkMode] = useState(false)
@@ -34,6 +35,7 @@ const AppContent: React.FC<AppContentProps> = ({isDarkMode, handleDarkToggle}) =
     const styles = useDarkModeStyles();
 
     const [query, setQuery] = useState('')
+    const [resultPlaylist, setResultPlaylist] = useState<Playlist>({} as Playlist)
     const [resultSongs, setResultSongs] = useState<(Song)[]>([])
     const [playlistSongs, setPlaylistSongs] = useState<(Song)[]>([])
 
@@ -60,8 +62,10 @@ const AppContent: React.FC<AppContentProps> = ({isDarkMode, handleDarkToggle}) =
                 <div className={'flex flex-row h-full w-full p-2 gap-4'}>
                     <ResultTable resultSongs={resultSongs} setPlaylistSongs={setPlaylistSongs}
                                  playlistSongs={playlistSongs}/>
-                    <PlaylistTable playlistSongs={playlistSongs} setPlaylistSongs={setPlaylistSongs}/>
+                    <PlaylistTable playlistSongs={playlistSongs} setPlaylistSongs={setPlaylistSongs}
+                                   setResultPlaylist={setResultPlaylist}/>
                 </div>
+                <GenerateImage resultPlaylist={resultPlaylist}/>
             </div>
         </div>
     )

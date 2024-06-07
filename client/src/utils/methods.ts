@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Some helper methods for the client side
 /**
  * Adds a boolean attribute of inPlaylistTable to each song in the playlist
@@ -36,10 +38,13 @@ const songExistsInArrayWithoutPlaylistTable = (song: Song | null, songArray: (So
  * @param playlistName - the name of the playlist
  * @param playlistSongs - the songs in the playlist
  */
-const handleSavePlaylist = (playlistName: string, playlistSongs: (Song)[]) => {
-    console.log(`Playlist Name: ${playlistName}`);
-    console.log(`playlistSongs`);
-
+const handleSavePlaylist = (playlistName: string, playlistSongs: (Song)[],
+                            setResultPlaylist: React.Dispatch<React.SetStateAction<Playlist>>) => {
+    const playlist: Playlist = {
+        title: playlistName,
+        songs: playlistSongs
+    }
+    setResultPlaylist(playlist)
 }
 
 export {applyPlaylistAttribute, songExistsInArrayWithoutPlaylistTable, handleSavePlaylist}

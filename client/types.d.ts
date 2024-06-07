@@ -8,6 +8,11 @@ declare global {
     type Song = SongInput & {
         inPlaylistTable: boolean;
     };
+
+    type Playlist = {
+        title: string;
+        songs: Song[];
+    }
 }
 
 export {}
