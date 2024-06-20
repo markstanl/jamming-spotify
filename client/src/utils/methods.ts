@@ -35,15 +35,17 @@ const songExistsInArrayWithoutPlaylistTable = (song: Song | null, songArray: (So
 
 /**
  * Handles saving a playlist
- * @param playlistName - the name of the playlist
+ * @param playlistImage - the name of the playlist
  * @param playlistSongs - the songs in the playlist
+ * @param setResultPlaylist - the state setter for the playlist
  */
-const handleSavePlaylist = (playlistName: string, playlistSongs: (Song)[],
+const handleSavePlaylist = (playlistImage: string, playlistSongs: (Song)[],
                             setResultPlaylist: React.Dispatch<React.SetStateAction<Playlist>>) => {
     const playlist: Playlist = {
-        title: playlistName,
+        playlistImage: playlistImage,
         songs: playlistSongs
     }
+    console.log(playlist)
     setResultPlaylist(playlist)
 }
 

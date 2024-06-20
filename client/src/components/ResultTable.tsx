@@ -4,8 +4,8 @@ import useDarkModeStyles from '@/utils/darkModeStyles';
 
 type ResultTableProps = {
     resultSongs: (Song)[],
-    setPlaylistSongs: React.Dispatch<React.SetStateAction<(Song)[]>>
-    playlistSongs: (Song)[];
+    setPlaylistSongs: React.Dispatch<React.SetStateAction<(Song)[]>>,
+    playlistSongs: (Song)[]
 }
 
 const ResultTable: React.FC<ResultTableProps> = ({resultSongs, setPlaylistSongs, playlistSongs}) => {

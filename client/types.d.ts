@@ -10,7 +10,7 @@ declare global {
     };
 
     type Playlist = {
-        title: string;
+        playlistImage: string;
         songs: Song[];
     }
 }
