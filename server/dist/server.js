@@ -15,25 +15,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const axios_1 = __importDefault(require("axios"));
-const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
+const session_file_store_1 = __importDefault(require("session-file-store"));
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config(); // Load environment variables from .env file
+dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = 3000;
+const FileStoreSession = (0, session_file_store_1.default)(express_session_1.default);
+app.use((0, express_session_1.default)({
+    store: new FileStoreSession({
+        path: './sessions', // Ensure this path is correct and writable
+        ttl: 3600, // Session expiration time in seconds (1 hour)
+        retries: 1,
+    }),
+    secret: process.env.SESSION_SECRET || 'default_secret',
+    resave: false,
+    saveUninitialized: true,
+}));
+// Middleware configuration
 app.use(express_1.default.json());
 app.use((0, cors_1.default)({
     origin: 'http://localhost:5173',
     credentials: true
-}));
-app.use((0, cookie_parser_1.default)());
-// Frankly this cookie stuff was a large part chatgpt
-// Session configuration
-app.use((0, express_session_1.default)({
-    secret: process.env.SESSION_SECRET || 'default_secret',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // true if https
 }));
 // Spotify API configuration
 const baseUrl = 'https://api.spotify.com';
@@ -101,26 +104,57 @@ app.get('/callback', (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.status(500).send('Error getting access token');
     }
 }));
-app.get('/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const query = req.query.q;
+app.get('/check-session', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("HERE");
+    console.log(req.session);
+    console.log(yield fetch('http://localhost:3000/check-session'));
     const access_token = req.session.access_token;
+    const query = req.query.q;
     if (!access_token) {
         return res.status(401).send('Unauthorized');
     }
-    try {
-        const searchOptions = {
-            method: 'get',
-            url: `${baseUrl}/v1/search?q=${encodeURIComponent(query)}&type=track`,
-            headers: {
-                'Authorization': `Bearer ${access_token}`
-            }
-        };
-        const response = yield (0, axios_1.default)(searchOptions);
-        res.json(response.data);
+    if (query) {
+        try {
+            const searchOptions = {
+                method: 'get',
+                url: `${baseUrl}/v1/search?q=${encodeURIComponent(query)}&type=track`,
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            };
+            const response = yield (0, axios_1.default)(searchOptions);
+            res.json(response.data);
+        }
+        catch (error) {
+            console.error('Error searching tracks', error);
+            res.status(500).send('Error searching tracks');
+        }
     }
-    catch (error) {
-        console.error('Error searching tracks', error);
-        res.status(500).send('Error searching tracks');
+}));
+app.get('/search', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.session);
+    console.log(yield fetch('http://localhost:3000/check-session'));
+    const access_token = req.session.access_token;
+    const query = req.query.q;
+    if (!access_token) {
+        return res.status(401).send('Unauthorized');
+    }
+    if (query) {
+        try {
+            const searchOptions = {
+                method: 'get',
+                url: `${baseUrl}/v1/search?q=${encodeURIComponent(query)}&type=track`,
+                headers: {
+                    'Authorization': `Bearer ${access_token}`
+                }
+            };
+            const response = yield (0, axios_1.default)(searchOptions);
+            res.json(response.data);
+        }
+        catch (error) {
+            console.error('Error searching tracks', error);
+            res.status(500).send('Error searching tracks');
+        }
     }
 }));
 app.post('/generate-title', (req, res) => {
@@ -129,84 +163,72 @@ app.post('/generate-title', (req, res) => {
     const songs = requestBody.songs;
     res.send({ title: 'Fortnite' });
 });
-app.get('/check-session', (req, res) => {
-    res.send(req.session);
-});
 app.post('/save-playlist', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('this was called');
-    const playlistImage = req.query.playlistImage;
-    const playlistTitle = req.query.playlistTitle;
+    console.log('Start');
+    console.log(req.session);
+    const playlistImage = req.body.playlistImage;
+    const playlistTitle = req.body.playlistTitle;
     const songs = req.body.songs;
     const access_token = req.session.access_token;
-    console.log(access_token);
     if (!access_token) {
-        console.log('access toekn');
+        console.log('No access token');
         return res.status(401).send('Unauthorized');
     }
-    console.log('asdfasdf');
-    const userId = yield getUserId(access_token);
-    const songUris = songs.map(song => song.URI);
-    let playlistId = '';
-    // Create a new playlist
+    console.log('passed acces token');
     try {
-        const searchOptions = {
+        console.log('create playlist');
+        const userId = yield getUserId(access_token);
+        const songUris = songs.map(song => song.uri);
+        // Create a new playlist
+        const createPlaylistOptions = {
             method: 'post',
-            url: `${baseUrl}/v1/users?user_id=${userId}/playlists`,
+            url: `${baseUrl}/v1/users/${userId}/playlists`,
             headers: {
                 'Authorization': `Bearer ${access_token}`,
                 'Content-Type': 'application/json'
             },
             data: {
                 name: playlistTitle,
-                description: 'Playlist generate with Jamming',
+                description: 'Playlist generated with Jamming',
                 public: false
             }
         };
-        console.log('before');
-        const response = yield (0, axios_1.default)(searchOptions);
-        console.log('after');
-        playlistId = response.data.id;
-    }
-    catch (error) {
-        console.error('Error searching tracks', error);
-        res.status(500).send('Error searching tracks');
-    }
-    // Add songs to the playlist
-    try {
-        const searchOptions = {
+        console.log('Add songs');
+        const createResponse = yield (0, axios_1.default)(createPlaylistOptions);
+        const playlistId = createResponse.data.id;
+        // Add songs to the playlist
+        const addSongsOptions = {
             method: 'post',
             url: `${baseUrl}/v1/playlists/${playlistId}/tracks`,
             headers: {
                 'Authorization': `Bearer ${access_token}`,
             },
             data: {
-                "uris": songUris,
+                uris: songUris,
                 position: 0
             }
         };
-        const response = yield (0, axios_1.default)(searchOptions);
+        yield (0, axios_1.default)(addSongsOptions);
+        console.log('Set image');
+        // Set the playlist image
+        if (playlistImage) {
+            const setImageOptions = {
+                method: 'put', // Updated to 'put' as Spotify's API requires this method for setting images
+                url: `${baseUrl}/v1/playlists/${playlistId}/images`,
+                headers: {
+                    'Authorization': `Bearer ${access_token}`,
+                    'Content-Type': 'image/jpeg'
+                },
+                data: playlistImage
+            };
+            yield (0, axios_1.default)(setImageOptions);
+        }
+        res.send('Playlist saved');
     }
     catch (error) {
-        console.error('Error adding songs', error);
-        res.status(500).send('Error adding songs');
+        console.error('Error saving playlist', error);
+        res.status(500).send('Error saving playlist');
     }
-    // set the playlist image
-    try {
-        const searchOptions = {
-            method: 'post',
-            url: `${baseUrl}/v1/playlists/${playlistId}/images`,
-            headers: {
-                'Authorization': `Bearer ${access_token}`,
-            },
-            data: playlistImage
-        };
-        const response = yield (0, axios_1.default)(searchOptions);
-    }
-    catch (error) {
-        console.error('Error changing playlist image', error);
-        res.status(500).send('Error changing playlist image');
-    }
-    res.send('Playlist saved');
 }));
 // Start server
 app.listen(port, () => {

@@ -3,7 +3,7 @@ declare global {
         title: string;
         artist: string;
         album: string;
-        URI: string;
+        uri: string;
     };
 
     type ServerPlaylist = {

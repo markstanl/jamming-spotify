@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
-import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import FileStore from 'session-file-store';
 import dotenv from 'dotenv';
@@ -10,32 +9,25 @@ dotenv.config();
 
 const app = express();
 const port = 3000;
+const FileStoreSession = FileStore(session);
+
+app.use(session({
+    store: new FileStoreSession({
+        path: './sessions', // Ensure this path is correct and writable
+        ttl: 3600, // Session expiration time in seconds (1 hour)
+        retries: 1,
+    }),
+    secret: process.env.SESSION_SECRET || 'default_secret',
+    resave: false,
+    saveUninitialized: true,
+
+}));
 
 // Middleware configuration
 app.use(express.json());
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
-}));
-app.use(cookieParser());
-
-// Setup session-file-store
-const FileStoreSession = FileStore(session);
-
-// Session configuration with file storage
-app.use(session({
-    store: new FileStoreSession({
-        path: './sessions', // Ensure this path is correct and writable
-        ttl: 3600, // Session expiration time in seconds (1 hour)
-        retries: 1, // Retry to fetch session data on file read error
-    }),
-    secret: process.env.SESSION_SECRET || 'default_secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false,
-        maxAge: 3600000 // Session expiration time in milliseconds (1 hour)
-    }
 }));
 
 
@@ -114,13 +106,14 @@ app.get('/callback', async (req, res) => {
     }
 });
 
-app.get('/check-session', (req, res) => {
-    console.log(req.session)
+app.get('/check-session', async (req, res) => {
+    const access_token = req.session.access_token;
     res.send(req.session);
 });
 
 app.get('/search', async (req, res) => {
     console.log(req.session)
+    console.log(await fetch('http://localhost:3000/check-session'))
     const access_token = req.session.access_token;
     const query = req.query.q as string;
 
@@ -216,7 +209,7 @@ app.post('/save-playlist', async (req, res) => {
                 url: `${baseUrl}/v1/playlists/${playlistId}/images`,
                 headers: {
                     'Authorization': `Bearer ${access_token}`,
-                    'Content-Type': 'image/jpeg' // Make sure the image data is base64-encoded and is of the right format
+                    'Content-Type': 'image/jpeg'
                 },
                 data: playlistImage
             };
