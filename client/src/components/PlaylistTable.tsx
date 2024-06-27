@@ -29,11 +29,28 @@ const PlaylistTable: React.FC<PlaylistTableProps> = ({
     }
 
     /**
+     * Checks the file size of the image
+     * @param e
+     */
+    const checkFileSize = (e: React.ChangeEvent<HTMLInputElement>): boolean => {
+        if(e.target.files){
+            const file = e.target.files[0];
+            const maxSize = 256 * 1024; // 1MB
+            if (file.size > maxSize) {
+                handleClearImage()
+                return false;
+            }
+            return true
+        }
+        return false
+    }
+
+    /**
      * Handles the image upload
      * @param e - the event
      */
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
+        if (e.target.files && checkFileSize(e)) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -63,7 +80,7 @@ const PlaylistTable: React.FC<PlaylistTableProps> = ({
         <div className={`w-5/12 min-h-screen flex flex-col ${styles.bgPrimary} items-center`}>
             <h1 className={`text-2xl font-bold ${styles.textAccent}`}>Playlist</h1>
             <input type="file"
-                   accept="image/*"
+                   accept="image/jpeg"
                    key={inputKey}
                    className={`bg-transparent mb-2  focus:outline-none p-1 ${styles.textBg}
                    border-b-2 ${styles.borderText} w-10/12`}
